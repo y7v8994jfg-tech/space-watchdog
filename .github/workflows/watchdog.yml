@@ -24,7 +24,7 @@ jobs:
 
       - name: Run Space Watchdog
         env:
-          HF_TOKEN: "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"
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
           SPACE_REPO: avvnire/agent-data
           SPACE_URL: https://avvnire-agent-data.hf.space
         run: python scripts/watchdog.py
