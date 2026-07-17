@@ -11,7 +11,7 @@ from datetime import datetime, timezone, timedelta
 
 REPO = os.environ.get("SPACE_REPO", "avvnire/agent-data")
 SPACE_URL = os.environ.get("SPACE_URL", "https://avvnire-agent-data.hf.space")
-HF_TOKEN = os.environ.get("HF_TOKEN", "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")
+HF_TOKEN = os.environ.get("HF_TOKEN", "")
 HF_API = "https://huggingface.co/api/spaces"
 
 BJ = timezone(timedelta(hours=8))
