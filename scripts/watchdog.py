@@ -58,6 +58,7 @@ def restart_space(token):
 
 
 def main():
+    print(f"[DEBUG] HF_TOKEN length={len(HF_TOKEN)}, starts={HF_TOKEN[:8]}, ends={HF_TOKEN[-6:]}" if HF_TOKEN else "[DEBUG] HF_TOKEN is EMPTY")
     if not HF_TOKEN:
         print(f"[{now_str}] No HF_TOKEN, aborting.")
         sys.exit(1)
