@@ -2,9 +2,8 @@ name: HF Space Watchdog
 
 on:
   schedule:
-    # 每15分钟检查一次（GitHub Actions cron最小粒度5分钟，但15分钟较稳定）
     - cron: '*/15 * * * *'
-  workflow_dispatch: # 支持手动触发
+  workflow_dispatch:
 
 jobs:
   watchdog:
@@ -25,7 +24,7 @@ jobs:
 
       - name: Run Space Watchdog
         env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_TOKEN: "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"
           SPACE_REPO: avvnire/agent-data
           SPACE_URL: https://avvnire-agent-data.hf.space
         run: python scripts/watchdog.py
