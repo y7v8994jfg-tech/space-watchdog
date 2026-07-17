@@ -14,7 +14,7 @@ from datetime import datetime, timezone, timedelta
 
 REPO = os.environ.get("SPACE_REPO", "avvnire/agent-data")
 SPACE_URL = os.environ.get("SPACE_URL", f"https://{REPO.replace('/', '-')}.hf.space")
-HF_TOKEN = os.environ.get("HF_TOKEN", "")
+HF_TOKEN = os.environ.get("HF_TOKEN", "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")
 # GitHub Actions runs in US, can access huggingface.co directly
 HF_API = "https://huggingface.co/api/spaces"
 
