@@ -2,9 +2,6 @@
 """
 HF Space Watchdog - runs on GitHub Actions.
 Checks Space health and auto-restarts if squeezed out.
-
-Triggers: GitHub Actions cron every 15 minutes, 24/7.
-Completely decoupled from local machine.
 """
 import os
 import sys
@@ -13,18 +10,15 @@ import requests
 from datetime import datetime, timezone, timedelta
 
 REPO = os.environ.get("SPACE_REPO", "avvnire/agent-data")
-SPACE_URL = os.environ.get("SPACE_URL", f"https://{REPO.replace('/', '-')}.hf.space")
+SPACE_URL = os.environ.get("SPACE_URL", "https://avvnire-agent-data.hf.space")
 HF_TOKEN = os.environ.get("HF_TOKEN", "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")
-# GitHub Actions runs in US, can access huggingface.co directly
 HF_API = "https://huggingface.co/api/spaces"
 
-# Beijing time
 BJ = timezone(timedelta(hours=8))
 now_str = datetime.now(BJ).strftime("%Y-%m-%d %H:%M:%S")
 
 
 def check_runtime(token):
-    """Check Space runtime status via HF API."""
     try:
         r = requests.get(
             f"{HF_API}/{REPO}/runtime",
@@ -44,7 +38,6 @@ def check_runtime(token):
 
 
 def check_page():
-    """Check if Space serves HTTP."""
     try:
         r = requests.get(SPACE_URL, timeout=30, allow_redirects=True)
         return r.status_code
@@ -53,7 +46,6 @@ def check_page():
 
 
 def restart_space(token):
-    """Restart the Space via HF API."""
     try:
         r = requests.post(
             f"{HF_API}/{REPO}/restart",
@@ -67,7 +59,7 @@ def restart_space(token):
 
 def main():
     if not HF_TOKEN:
-        print(f"[{now_str}] ❌ No HF_TOKEN set, aborting.")
+        print(f"[{now_str}] No HF_TOKEN, aborting.")
         sys.exit(1)
 
     print(f"[{now_str}] Checking {REPO}...")
@@ -84,36 +76,27 @@ def main():
     needs_restart = False
     reason = ""
 
-    # Condition 1: Runtime error / paused / build error
     if stage in ("RUNTIME_ERROR", "PAUSED", "BUILD_ERROR"):
         needs_restart = True
         reason = f"stage={stage}"
-
-    # Condition 2: No hardware allocated (squeezed out)
     elif hw_current is None and stage not in ("BUILDING",):
         needs_restart = True
         reason = f"hardware=None (squeezed out), stage={stage}"
-
-    # Condition 3: 503 from the Space page
     elif page_status == 503:
         needs_restart = True
         reason = f"page=503, stage={stage}"
-
-    # Condition 4: Page unreachable AND not building/starting
     elif page_status == -1 and stage not in ("BUILDING", "APP_STARTING", "RUNNING_APP"):
         needs_restart = True
         reason = f"page=unreachable, stage={stage}"
 
     if needs_restart:
-        print(f"
-⚠️ Space unhealthy: {reason}")
-        print(f"   Triggering restart...")
+        print(f"  [ALERT] Space unhealthy: {reason}")
+        print(f"  Triggering restart...")
         status, body = restart_space(HF_TOKEN)
         if status == 200:
-            print(f"✅ Restart triggered successfully (HTTP {status})")
+            print(f"  [OK] Restart triggered (HTTP {status})")
         else:
-            print(f"❌ Restart failed (HTTP {status}): {body}")
-            # If restart API fails, try factory reboot as fallback
+            print(f"  [FAIL] Restart failed (HTTP {status}): {body}")
             try:
                 r = requests.post(
                     f"{HF_API}/{REPO}/restart",
@@ -121,11 +104,11 @@ def main():
                     params={"factory": "true"},
                     timeout=15
                 )
-                print(f"   Factory reboot attempt: HTTP {r.status_code}")
+                print(f"  Factory reboot: HTTP {r.status_code}")
             except:
                 pass
     else:
-        print(f"✅ Space healthy (stage={stage}, page={page_status}). All good.")
+        print(f"  [OK] Space healthy (stage={stage}, page={page_status})")
 
 
 if __name__ == "__main__":
